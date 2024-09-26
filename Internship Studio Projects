@@ -1,0 +1,283 @@
+# Sales Data Analysis and Reporting for Retail Chain
+
+
+
+import pandas as pd
+
+trxn = pd.read_csv("C:\\Program Files\\MySQL\\MySQL Server 8.0\\Retail_Data_Transactions.csv\\Retail_Data_Transactions.csv")
+print(trxn)
+print()
+
+
+response = pd.read_csv("C:\\Program Files\\MySQL\\MySQL Server 8.0\\Retail_Data_Transactions.csv\\Retail_Data_Response.csv")
+print(response)
+print()
+
+
+a = trxn.merge(response,on='customer_id',how='left')
+print(a)
+print()
+
+
+
+# Features
+
+print('-------   Dtypes   --------')
+print(a.dtypes)
+print()
+
+
+print('------   Shapes   -------')
+print(a.shape)
+print()
+
+print('---------  Head   ----------')
+print(a.head())
+print()
+
+print('--------   Tail   ----------')
+print(a.tail())
+print()
+
+
+
+print('-----   Describe    -------')
+print(a.describe())
+print()
+
+
+
+# Missing Values
+
+print('----------  Missing-Value  ---------')
+print(a.isnull().sum())
+print()
+
+print('-------  Dropna   --------')
+a = a.dropna()
+print(a)
+print()
+
+
+
+# Change dtypes
+
+
+a['trans_date'] = pd.to_datetime(a['trans_date'])
+a['response'] = a['response'].astype('int64')
+
+print('----------  Trans-Date  ----------')
+print(a['trans_date'])
+print(a)
+print()
+
+print('---------  Response  ---------')
+print(set(a['response']))
+print(a)
+print()
+
+
+print(a.dtypes)
+print()
+
+
+# check for outliers
+# Z-score
+
+from scipy import stats
+import numpy as np
+
+# calc z score
+
+print('----------  calculate z-score Tran-amount --------------')
+z_scores = np.abs(stats.zscore(a['tran_amount']))
+print(z_scores)
+print()
+
+
+# set a threshold
+
+threshold = 3
+
+outliers = z_scores>threshold
+print(a[outliers])
+
+print()
+
+
+
+# calcualate z score
+
+print('------ calculate zscore response --------')
+z_scores = np.abs(stats.zscore(a['response']))
+print(z_scores)
+print()
+
+# set a threshold
+threshold = 3
+
+outliers = z_scores>threshold
+
+print(a[outliers])
+
+print()
+
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.boxplot(x=a['response'])
+plt.show()
+
+sns.boxplot(x=a['tran_amount'])
+plt.show()
+
+# creating new columns
+
+a['month'] = a['trans_date'].dt.month
+print(a)
+print()
+
+# which 3 month has the highest transaction amount ?
+
+monthly_Sales = a.groupby('month')['tran_amount'].sum()
+monthly_Sales = monthly_Sales.sort_values(ascending=False).reset_index()
+print(monthly_Sales)
+print()
+
+# Customer having highest value of orders
+
+customer_counts = a['customer_id'].value_counts().reset_index()
+print(customer_counts)
+print()
+
+customer_counts = a['customer_id'].value_counts().reset_index()
+customer_counts.columns =['customer_id','count']
+print(customer_counts)
+print()
+
+# sort
+
+top_5_cus = customer_counts.sort_values(by='count',ascending=False).head(5)
+print(top_5_cus)
+print()
+
+
+sns.barplot(x='customer_id',y='count',data=top_5_cus)
+plt.show()
+
+
+# Customers having the highest value of Sales
+
+customer_sales = a.groupby('customer_id')['tran_amount'].sum().reset_index()
+print(customer_sales)
+print()
+
+# sort
+
+top_5_sal = customer_sales.sort_values(by='tran_amount', ascending=False).head()
+print(top_5_sal)
+print()
+
+sns.barplot(x='customer_id', y='tran_amount',data=top_5_sal)
+plt.show()
+
+
+# Advanced Analytics
+
+import matplotlib.dates as mdates
+
+
+ # Time Series Analysis
+
+a['month_year'] = a['trans_date'].dt.to_period('M')
+print(a)
+
+
+
+monthly_sales = a.groupby('month_year')['tran_amount'].sum()
+monthly_sales.index = monthly_sales.index.to_timestamp()
+
+plt.figure(figsize=(6,6))
+plt.plot(monthly_sales.index,monthly_sales.values)
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+plt.gca().xaxis.set_major_locator(mdates.MonthLocator(interval=6))
+plt.xlabel('Month-Year')
+plt.ylabel('Sales')
+plt.title('Monthly Sales')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+
+# Cohort Segmentation
+
+# Recency
+
+recency = a.groupby('customer_id')['trans_date'].max()
+print(recency)
+print()
+
+# Frequency
+
+frequency = a.groupby('customer_id')['trans_date'].count()
+print(frequency)
+print()
+
+# Monetory
+
+monetary = a.groupby('customer_id')['tran_amount'].sum()
+print(monetary)
+print()
+
+# Combine
+
+rfm = pd.DataFrame({'recency':recency,'frequency':frequency,'monetary':monetary})
+print(rfm)
+print()
+
+
+# Customer Segmentation
+
+def segment_customer(row):
+    if row['recency'].year >=2012 and row['frequency']>=15 and row['monetary']>1000:
+        return 'P0'
+    elif (2011<=row['recency'].year<2012) and (10<row['frequency']<15) and (500<=row['monetary']<=1000):
+        return 'P1'
+    else:
+        return 'P2'
+
+rfm ['Segment'] = rfm.apply(segment_customer, axis=1)
+print(rfm)
+print()
+
+
+# Churn Analysis
+
+# Count the numbers of churned and active customers
+
+churn_counts = a['response'].value_counts()
+
+# Plot
+churn_counts.plot(kind='bar')
+plt.show()
+
+# Analyzing top customers
+
+top_5_cus = monetary.sort_values(ascending=False).head(5).index
+top_customers_a=a[a['customer_id'].isin(top_5_cus)]
+top_customer_sales = top_customers_a.groupby(['customer_id','month_year'])['tran_amount'].sum().unstack(level=0)
+top_customer_sales.plot(kind='line')
+plt.show()
+
+
+
+a.to_csv('MainData.csv')
+
+
+rfm.to_csv('AddAnlys.csv')
+
+
+sns.scatterplot(x='frequency', y='monetary', data=rfm)
+plt.show()
