@@ -1,0 +1,244 @@
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+url = "aerofit_trademill"
+
+df = pd.read_csv(url)
+df.head()
+
+df.describe()
+
+df.value_counts()
+
+conditions = [(df['Income'] >= 60000),
+              (df['Income'] >= 30000) & (df['Income'] < 60000),
+              (df['Income'] < 30000)]
+
+choices = ['high','medium','low']
+
+df['income range'] = np.select(conditions,choices, default='unknown')
+
+bins = [18,25,35,50]
+
+# Create labels for the bins
+labels = ['18-25', '26-35', '36-50']
+
+# Add a new column to the dataframe containing the bin labels
+df['Age_Bracket'] = pd.cut(df['Age'], bins=bins, labels=labels, include_lowest=True)
+
+# Print the new dataframe with the age brackets
+df
+
+# Statistical Summary
+
+'''
+
+Based on the statistical summary, the following observations can be made:
+
+1. The sample contains 180 individuals with a mean age of approximately 29 years.
+2. The average education level is around 15 years, with a minimum of 12 years and a maximum of 21 years.
+3. The average usage is around 3.5 times per week, with a minimum of 2 times and a maximum of 7 times.
+4. The average fitness level is around 3.3, with a minimum of 1 and a maximum of 5.
+5. The average income is approximately 53,700 USD per year, with a standard deviation of 16,500 USD.
+6. The average distance covered in a week is around 103 miles, with a minimum of 21 miles and a maximum of 360 miles.
+
+Overall, the sample appears to be relatively healthy and active, with a high level of education and a moderate income.
+
+'''
+
+df.info()
+
+df.shape
+
+# as we can see,we don't have any missing value in our data
+
+gender_count = df['Gender'].value_counts()
+
+# create a pie chart
+
+plt.figure(figsize=(8,6))
+sns.set(style='whitegrid')
+sns.color_palette('pastel')
+plt.pie(gender_count,labels= gender_count.index,autopct='%1.1f%%', startangle=90, explode=[0.05,0])
+plt.title('Distribution of Gender')
+plt.show()
+
+gender_count = df['Gender'].value_counts()
+gender_count
+
+sns.set_style('darkgrid')
+
+# create a histogram plot with 10 bins
+sns.histplot(df['Age'],bins=10,kde=True)
+
+#set the plot title and axis labels
+
+plt.title('Distribution of Age')
+plt.xlabel('Age')
+plt.ylabel('Count')
+
+# show the plot
+plt.show()
+
+sns.boxplot(x=df['Age'])
+plt.title('Finding Outliers')
+plt.xlabel('Age')
+plt.ylabel('Count')
+plt.show()
+
+df['Age'].describe()
+
+
+mean = df['Age'].mean()
+median = df['Age'].median()
+difference = mean-median
+difference
+
+marries_count = len(df[df['MaritalStatus'] == 'Partnered'])
+single_count = len(df[df['MaritalStatus'] == 'Single'])
+
+# Creating the pie chart
+
+labels = ['Married','Single']
+sizes = [marries_count,single_count]
+explode = (0,0.1) # Exploding the 'Single' slice of the pie
+colors = ['#FFA07A','#87CEFA']
+plt.pie(sizes,explode=explode,labels=labels, colors=colors,autopct='%1.1f%%', startangle = 90)
+plt.axis('equal')
+
+# Setting the title of the pie chart
+plt.title('Married vs Single')
+
+# Displaying the title of the pie chart
+plt.show()
+
+sns.histplot(data=df,x='Income', hue='Product')
+plt.title('Income Distribution')
+plt.show()
+
+sns.countplot(x='MaritalStatus', hue='Product', data=df)
+
+sns.countplot(x='Age_Bracket', hue='Product', data=df)
+plt.title('Relation Between age brackets and type of Product')
+plt.show()
+
+
+sns.histplot(x='Age', hue='Product', data=df)
+plt.title('Relation betweeen age and product')
+plt.show()
+
+sns.boxplot(x='Product', y='Age', data=df)
+plt.title('Age and Product')
+plt.show()
+
+marginal_prob = pd.crosstab(index=df['Product'], columns='count', normalize=True)
+marginal_prob *= 100
+marginal_prob
+
+
+labels = marginal_prob.index.tolist()
+sizes = marginal_prob.values.flatten().tolist()
+
+# plot the pie chart
+plt.figure(figure=(6,6))
+sns.set_style('whitegrid')
+color = ['#FDB813','#F77737','#CD525C']
+plt.pie(sizes,labels=labels, colors=colors, autopct='%1.1f%%', startangle=90, pctdistance=0.85)
+plt.title('Marginal Probability of Product Purchases')
+plt.show()
+
+# Filter the data to include only KP781 treadmills
+kp781_df = df[df['Product'] == 'KP281']
+
+# Count the total number of customers who bought the product
+male_count = len(kp781_df[kp781_df['Gender'] == 'Male'])
+
+# Count the total number of customers who bought the product
+total_count = len(kp781_df)
+
+# Count the probability of a male customer buying the product
+prob_male_buy =male_count/total_count
+
+prob_male_buy
+
+# Probability of a male customer buying KP781: 0.5
+numeric_df = df.select_dtypes(include='number')
+
+# Generate a correlation matrix for the dataframe
+corr_matrix = numeric_df.corr()
+
+#set up the figure size
+fig,ax = plt.subplots(figure=(10,8))
+
+# Generate the heatmap using seaborn
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', linewidths = 0.5,ax=ax)
+
+# Add a title to the plot
+ax.set_title('Correlation Heatmap')
+
+# Show the plot
+plt.show()
+
+'''
+The Age attribute ranges from 18 to 50, which indicates that the data represents 
+a sample of individuals aged between 18 and 50 years. The Education attribute ranges from 12 to 18,
+which indicates that the individuals in the dataset have completed education ranging from high school to college.
+The Income attribute ranges from 29562 to 104581, indicating a wide range of income levels.
+
+The Miles attribute ranges from 38 to 188, which indicates that individuals in the dataset 
+are using the fitness equipment for varying distances. 
+The Usage attribute ranges from 2 to 5, which indicates how frequently individuals use the fitness equipment. 
+The Fitness attribute ranges from 1 to 5, indicating the level of fitness of individuals in the dataset.
+
+Overall, the range of attributes in this dataset is quite diverse, 
+which may provide valuable insights into the behavior and characteristics of customers who purchase fitness equipment.
+
+
+The distribution of variables
+
+  1. We are having Three Products in our inventory.
+  2. The age is ranging between 18 to 50.
+  3. We can see that the count of males is higher than that of females from the pie chart plotted above.
+  4. Almost 60% of the customers are married and the remaining are single.
+  5. The income is having a pretty uneven distribution across the range , where majority is earning below 70,000 $
+  
+In terms of relationships between variables, there are a few notable patterns. 
+Income and age are positively correlated, as are income and education. 
+There is a weak positive correlation between income and miles run per week. 
+Fitness and usage also show a weak positive correlation.
+ Finally, there is no clear relationship between gender and any of the other variables.
+
+'''
+
+cont_table1 = pd.crosstab(df['Gender'], df['Product'], normalize = 'index')
+
+# display the table
+print(cont_table1)
+
+cont_table2 = pd.crosstab(df['income range'], df['Product'], normalize= 'index')
+
+# display the table
+print(cont_table2)
+
+'''
+Based on the analysis of the customer data, here are my recommendations for Aerofit:
+
+1] Promote the KP781 model in the high and medium income range bracket as they are more likely to buy it. 
+The data shows that customers in the higher income brackets are more likely to purchase higher-end products. 
+Therefore, Aerofit should focus on marketing and promoting the KP781 model to customers in these income ranges to increase sales.
+
+2] Aerofit should also focus on marketing the products to married people, 
+as they are more likely to buy the products than unmarried ones. 
+This could be done by running targeted ads or creating campaigns that focus on the benefits of using Aerofit products for couples. 
+Aerofit should also take into account the gender preferences for their products.
+
+3] Females are more likely to buy the KP281 model than males, while the KP781 is preferred by males. 
+This information could be used to develop targeted marketing campaigns for each model, highlighting the features that appeal most to each gender.
+
+
+'''
