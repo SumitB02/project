@@ -63,8 +63,6 @@ CALCULATE([Total Loan Applications], 'Bank Loan'[LOAN_STATUS] = "Charged Off")
 2. Open it in Power BI Desktop (free).
 3. If prompted, point the data source to `data/Financial_loan_data.xlsx`.
 
-## Acknowledgements
-Project brief and dataset based on the Wexllent bank loan analytics course.
 
 ## Contact
 - GitHub: https://github.com/SumitB02
