@@ -1,1 +1,71 @@
+# Bank Loan Analytics Dashboard | Power BI
 
+An end-to-end Power BI project analyzing a bank's loan portfolio: funded amount, repayments, good vs bad loans, interest rate and debt-to-income (DTI).
+
+
+
+## Business Problem
+The bank needs to monitor lending performance, separate good loans from bad loans, and track repayment behavior to make data-driven lending decisions.
+
+## Dataset
+- **File:** `data/Financial_loan_data.xlsx`
+- **Size:** 38,576 loan applications, 23 columns
+- **Period:** January to December 2021
+- **Key columns:** ID, ISSUE_DATE, PURPOSE, GRADE, HOME_OWNERSHIP, ADDRESS_STATE, LOAN_STATUS, TERM, DTI, INT_RATE, LOAN_AMOUNT, TOTAL_PAYMENT
+
+## Tools Used
+Power BI Desktop, Power Query, DAX
+
+## Loan Classification
+| Category | Loan Status | Applications | Share |
+|---|---|---|---|
+| Good Loan | Fully Paid, Current | 33,243 | 86.18% |
+| Bad Loan | Charged Off | 5,333 | 13.82% |
+
+## KPIs
+| KPI | Value |
+|---|---|
+| Total Loan Applications | 38,576 |
+| Total Funded Amount | $435.76M |
+| Total Amount Received | $473.07M |
+| Average Interest Rate | 12.05% |
+| Average DTI | 13.33% |
+
+## Dashboard Pages
+**Summary:** KPI cards, Good and Bad loan donuts, Funded vs Received, interest rate, DTI and applications by loan status.
+
+**Overview:** Monthly applications, state map, term analysis, home ownership analysis, purpose treemap, with Purpose and Grade filters, page navigation and a Reset button.
+
+## Key Insights
+- 86% of loans are good, but 13.8% are charged off.
+- Charged Off loans were funded at $65.5M but only $37.3M was received (shortfall of about $28.2M).
+- Charged Off loans have a higher average interest rate (13.88%) than Fully Paid loans (11.64%).
+- Charge-off rate rises with risk grade, from 5.7% in Grade A to 31.3% in Grade G.
+- Monthly applications grew about 85% from January to December.
+
+## Key DAX Measures
+```DAX
+Total Loan Applications = DISTINCTCOUNT('Bank Loan'[ID])
+Total Funded Amount = SUM('Bank Loan'[LOAN_AMOUNT])
+Total Amount Received = SUM('Bank Loan'[TOTAL_PAYMENT])
+Avg Interest Rate = AVERAGE('Bank Loan'[INT_RATE])
+Avg DTI = AVERAGE('Bank Loan'[DTI])
+
+Good Loan Applications =
+CALCULATE([Total Loan Applications], 'Bank Loan'[LOAN_STATUS] IN {"Fully Paid", "Current"})
+
+Bad Loan Applications =
+CALCULATE([Total Loan Applications], 'Bank Loan'[LOAN_STATUS] = "Charged Off")
+```
+
+## How to Open
+1. Download the `.pbix` file from the `dashboard` folder.
+2. Open it in Power BI Desktop (free).
+3. If prompted, point the data source to `data/Financial_loan_data.xlsx`.
+
+## Acknowledgements
+Project brief and dataset based on the Wexllent bank loan analytics course.
+
+## Contact
+- GitHub: https://github.com/SumitB02
+- LinkedIn: Sumit Bhagde www.linkedin.com/in/sumit-bhagde-26993920a
